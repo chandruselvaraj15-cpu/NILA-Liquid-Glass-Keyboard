@@ -1,187 +1,154 @@
 package com.nila.keyboard
-import android.animation.ValueAnimator
-import android.graphics.Color
-import android.graphics.drawable.GradientDrawable
-import android.inputmethodservice.InputMethodService
-import android.view.Gravity
-import android.view.HapticFeedbackConstants
-import android.view.KeyEvent
-import android.view.MotionEvent
-import android.view.View
-import android.view.animation.LinearInterpolator
-import android.view.inputmethod.EditorInfo
-import android.widget.LinearLayout
-import android.widget.TextView
-class NilaKeyboardService : InputMethodService() {
-    private var shift = false
-    private var symbols = false
-    private val keyDrawables = mutableListOf<GradientDrawable>()
-    private val letterKeys = mutableListOf<TextView>()
-    private var animator: ValueAnimator? = null
-    private fun dp(v: Int): Int = (v * resources.displayMetrics.density).toInt()
-    override fun onCreateInputView(): View = buildKeyboard()
+import android.content.Context
+import android.content.SharedPreferences
+class NilaPreferences(context: Context) {
+    private val prefs: SharedPreferences =
+        context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    var advancedMode: Boolean
+        get() = prefs.getBoolean(KEY_ADVANCED_MODE, false)
+        set(value) = prefs.edit().putBoolean(KEY_ADVANCED_MODE, value).apply()
+    var darkTheme: Boolean
+        get() = prefs.getBoolean(KEY_DARK_THEME, true)
+        set(value) = prefs.edit().putBoolean(KEY_DARK_THEME, value).apply()
+    // 10..95 (%)
+    var keyboardTransparency: Int
+        get() = prefs.getInt(KEY_TRANSPARENCY, 58).coerceIn(10, 95)
+        set(value) = prefs.edit().putInt(KEY_TRANSPARENCY, value.coerceIn(10, 95)).apply()
+    // 75..120 (%)
+    var keySizeScale: Int
+        get() = prefs.getInt(KEY_KEY_SIZE, 100).coerceIn(75, 120)
+        set(value) = prefs.edit().putInt(KEY_KEY_SIZE, value.coerceIn(75, 120)).apply()
+    // 0..100 (%)
+    var keyRoundness: Int
+        get() = prefs.getInt(KEY_KEY_ROUNDNESS, 65).coerceIn(0, 100)
+        set(value) = prefs.edit().putInt(KEY_KEY_ROUNDNESS, value.coerceIn(0, 100)).apply()
+    // 1..8 (dp)
+    var keySpacing: Int
+        get() = prefs.getInt(KEY_KEY_SPACING, 3).coerceIn(1, 8)
+        set(value) = prefs.edit().putInt(KEY_KEY_SPACING, value.coerceIn(1, 8)).apply()
+    // 0 = Liquid Glass, 1 = Matte Frosted, 2 = Soft 3D Crystal
+    var keyTexture: Int
+        get() = prefs.getInt(KEY_KEY_TEXTURE, 0).coerceIn(0, 2)
+        set(value) = prefs.edit().putInt(KEY_KEY_TEXTURE, value.coerceIn(0, 2)).apply()
+    // 0..100 (%)
+    var glassBlurLevel: Int
+        get() = prefs.getInt(KEY_GLASS_BLUR, 70).coerceIn(0, 100)
+        set(value) = prefs.edit().putInt(KEY_GLASS_BLUR, value.coerceIn(0, 100)).apply()
+    // 0..100 (%)
+    var wallpaperVisibility: Int
+        get() = prefs.getInt(KEY_WALLPAPER_VISIBILITY, 65).coerceIn(0, 100)
+        set(value) = prefs.edit().putInt(KEY_WALLPAPER_VISIBILITY, value.coerceIn(0, 100)).apply()
+    // 0..100 (%)
+    var animIntensity: Int
+        get() = prefs.getInt(KEY_ANIM_INTENSITY, 75).coerceIn(0, 100)
+        set(value) = prefs.edit().putInt(KEY_ANIM_INTENSITY, value.coerceIn(0, 100)).apply()
+    var rippleEnabled: Boolean
+        get() = prefs.getBoolean(KEY_RIPPLE_ENABLED, true)
+        set(value) = prefs.edit().putBoolean(KEY_RIPPLE_ENABLED, value).apply()
+    var pop3dEnabled: Boolean
+        get() = prefs.getBoolean(KEY_POP_3D_ENABLED, true)
+        set(value) = prefs.edit().putBoolean(KEY_POP_3D_ENABLED, value).apply()
+    var hapticEnabled: Boolean
+        get() = prefs.getBoolean(KEY_HAPTIC_ENABLED, true)
+        set(value) = prefs.edit().putBoolean(KEY_HAPTIC_ENABLED, value).apply()
+    // 10..100 (%)
+    var hapticIntensity: Int
+        get() = prefs.getInt(KEY_HAPTIC_INTENSITY, 55).coerceIn(10, 100)
+        set(value) = prefs.edit().putInt(KEY_HAPTIC_INTENSITY, value.coerceIn(10, 100)).apply()
+    fun configHash(): Int {
+        return listOf(
+            advancedMode,
+            darkTheme,
+            keyboardTransparency,
+            keySizeScale,
+            keyRoundness,
+            keySpacing,
+            keyTexture,
+            glassBlurLevel,
+            wallpaperVisibility,
+            animIntensity,
+            rippleEnabled,
+            pop3dEnabled,
+            hapticEnabled,
+            hapticIntensity
+        ).hashCode()
+    }
+    fun saveSnapshot() {
+        prefs.edit()
+            .putBoolean(SNAP_PREFIX + KEY_ADVANCED_MODE, advancedMode)
+            .putBoolean(SNAP_PREFIX + KEY_DARK_THEME, darkTheme)
+            .putInt(SNAP_PREFIX + KEY_TRANSPARENCY, keyboardTransparency)
+            .putInt(SNAP_PREFIX + KEY_KEY_SIZE, keySizeScale)
+            .putInt(SNAP_PREFIX + KEY_KEY_ROUNDNESS, keyRoundness)
+            .putInt(SNAP_PREFIX + KEY_KEY_SPACING, keySpacing)
+            .putInt(SNAP_PREFIX + KEY_KEY_TEXTURE, keyTexture)
+            .putInt(SNAP_PREFIX + KEY_GLASS_BLUR, glassBlurLevel)
+            .putInt(SNAP_PREFIX + KEY_WALLPAPER_VISIBILITY, wallpaperVisibility)
+            .putInt(SNAP_PREFIX + KEY_ANIM_INTENSITY, animIntensity)
+            .putBoolean(SNAP_PREFIX + KEY_RIPPLE_ENABLED, rippleEnabled)
+            .putBoolean(SNAP_PREFIX + KEY_POP_3D_ENABLED, pop3dEnabled)
+            .putBoolean(SNAP_PREFIX + KEY_HAPTIC_ENABLED, hapticEnabled)
+            .putInt(SNAP_PREFIX + KEY_HAPTIC_INTENSITY, hapticIntensity)
+            .putBoolean(KEY_HAS_SNAPSHOT, true)
+            .apply()
+    }
+    fun hasSnapshot(): Boolean = prefs.getBoolean(KEY_HAS_SNAPSHOT, false)
 
-    override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
-        super.onStartInputView(info, restarting)
-        startRgb()
+    fun restoreSnapshot(): Boolean {
+        if (!hasSnapshot()) return false
+        prefs.edit()
+            .putBoolean(KEY_ADVANCED_MODE, prefs.getBoolean(SNAP_PREFIX + KEY_ADVANCED_MODE, false))
+            .putBoolean(KEY_DARK_THEME, prefs.getBoolean(SNAP_PREFIX + KEY_DARK_THEME, true))
+            .putInt(KEY_TRANSPARENCY, prefs.getInt(SNAP_PREFIX + KEY_TRANSPARENCY, 58))
+            .putInt(KEY_KEY_SIZE, prefs.getInt(SNAP_PREFIX + KEY_KEY_SIZE, 100))
+            .putInt(KEY_KEY_ROUNDNESS, prefs.getInt(SNAP_PREFIX + KEY_KEY_ROUNDNESS, 65))
+            .putInt(KEY_KEY_SPACING, prefs.getInt(SNAP_PREFIX + KEY_KEY_SPACING, 3))
+            .putInt(KEY_KEY_TEXTURE, prefs.getInt(SNAP_PREFIX + KEY_KEY_TEXTURE, 0))
+            .putInt(KEY_GLASS_BLUR, prefs.getInt(SNAP_PREFIX + KEY_GLASS_BLUR, 70))
+            .putInt(KEY_WALLPAPER_VISIBILITY, prefs.getInt(SNAP_PREFIX + KEY_WALLPAPER_VISIBILITY, 65))
+            .putInt(KEY_ANIM_INTENSITY, prefs.getInt(SNAP_PREFIX + KEY_ANIM_INTENSITY, 75))
+            .putBoolean(KEY_RIPPLE_ENABLED, prefs.getBoolean(SNAP_PREFIX + KEY_RIPPLE_ENABLED, true))
+            .putBoolean(KEY_POP_3D_ENABLED, prefs.getBoolean(SNAP_PREFIX + KEY_POP_3D_ENABLED, true))
+            .putBoolean(KEY_HAPTIC_ENABLED, prefs.getBoolean(SNAP_PREFIX + KEY_HAPTIC_ENABLED, true))
+            .putInt(KEY_HAPTIC_INTENSITY, prefs.getInt(SNAP_PREFIX + KEY_HAPTIC_INTENSITY, 55))
+            .apply()
+        return true
     }
-    override fun onFinishInputView(finishingInput: Boolean) {
-        super.onFinishInputView(finishingInput)
-        animator?.cancel()
+    fun resetToDefaults() {
+        prefs.edit()
+            .putBoolean(KEY_DARK_THEME, true)
+            .putInt(KEY_TRANSPARENCY, 58)
+            .putInt(KEY_KEY_SIZE, 100)
+            .putInt(KEY_KEY_ROUNDNESS, 65)
+            .putInt(KEY_KEY_SPACING, 3)
+            .putInt(KEY_KEY_TEXTURE, 0)
+            .putInt(KEY_GLASS_BLUR, 70)
+            .putInt(KEY_WALLPAPER_VISIBILITY, 65)
+            .putInt(KEY_ANIM_INTENSITY, 75)
+            .putBoolean(KEY_RIPPLE_ENABLED, true)
+            .putBoolean(KEY_POP_3D_ENABLED, true)
+            .putBoolean(KEY_HAPTIC_ENABLED, true)
+            .putInt(KEY_HAPTIC_INTENSITY, 55)
+            .apply()
     }
-    override fun onDestroy() {
-        animator?.cancel()
-        super.onDestroy()
-    }
-    private fun startRgb() {
-        animator?.cancel()
-        animator = ValueAnimator.ofFloat(0f, 360f).apply {
-            duration = 6000
-            repeatCount = ValueAnimator.INFINITE
-            interpolator = LinearInterpolator()
-            addUpdateListener { va ->
-                val h = va.animatedValue as Float
-                keyDrawables.forEachIndexed { i, d ->
-                    val c = Color.HSVToColor(210, floatArrayOf((h + i * 7f) % 360f, 0.75f, 1f))
-                    d.setStroke(dp(1), c)
-                }
-            }
-            start()
-        }
-    }
+    companion object {
+        private const val PREFS_NAME = "nila_keyboard_prefs"
+        private const val SNAP_PREFIX = "snap_"
+        private const val KEY_HAS_SNAPSHOT = "has_snapshot"
 
-    private fun buildKeyboard(): View {
-        keyDrawables.clear()
-        letterKeys.clear()
-
-        val screenW = resources.displayMetrics.widthPixels
-        val keySize = (screenW - dp(12)) / 10 - dp(4)
-        val root = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(6), dp(8), dp(6), dp(10))
-            background = GradientDrawable(
-                GradientDrawable.Orientation.TOP_BOTTOM,
-                intArrayOf(Color.rgb(18, 15, 35), Color.rgb(8, 8, 20))
-            )
-        }
-        val numberRow = "1234567890"
-        val rows: List<String> = if (!symbols) {
-            listOf("qwertyuiop", "asdfghjkl", "zxcvbnm")
-        } else {
-            listOf("@#₹_&-+()/", "=*\"':;!?%", "~<>[]{}")
-        }
-        root.addView(makeRow(numberRow.map { ch -> makeKey(ch.toString(), keySize, keySize, false) { type(ch.toString()) } }))
-        root.addView(makeRow(rows[0].map { ch -> letterKey(ch, keySize) }))
-        root.addView(makeRow(rows[1].map { ch -> letterKey(ch, keySize) }))
-
-        val row3 = mutableListOf<View>()
-        row3.add(makeKey("⇧", keySize * 3 / 2, keySize, true) {
-            shift = !shift
-            updateLabels()
-        })
-        rows[2].forEach { ch -> row3.add(letterKey(ch, keySize)) }
-        row3.add(makeKey("⌫", keySize * 3 / 2, keySize, true) { backspace() })
-        root.addView(makeRow(row3))
-
-        val bottom = listOf(
-            makeKey(if (symbols) "ABC" else "?123", keySize * 3 / 2, keySize, true) {
-                symbols = !symbols
-                setInputView(buildKeyboard())
-                startRgb()
-            },
-            makeKey(",", keySize, keySize, false) { type(",") },
-            makeKey("NILA", keySize * 5, keySize, true) { type(" ") },
-            makeKey(".", keySize, keySize, false) { type(".") },
-            makeKey("↵", keySize * 3 / 2, keySize, true) { enter() }
-        )
-        root.addView(makeRow(bottom))
-        updateLabels()
-        return root
-    }
-    private fun makeRow(keys: List<View>): LinearLayout {
-        return LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_HORIZONTAL
-            keys.forEach { addView(it) }
-        }
-    }
-    private fun letterKey(ch: Char, size: Int): TextView {
-        val tv = makeKey(ch.toString(), size, size, false) {
-            val out = if (shift && !symbols) ch.toString().uppercase() else ch.toString()
-            type(out)
-            if (shift && !symbols) {
-                shift = false
-                updateLabels()
-            }
-        }
-        if (ch.isLetter()) letterKeys.add(tv)
-        tv.tag = ch.toString()
-        return tv
-    }
-    private fun updateLabels() {
-        letterKeys.forEach { tv ->
-            val base = tv.tag as String
-            tv.text = if (shift) base.uppercase() else base
-        }
-    }
-    private fun makeKey(label: String, w: Int, h: Int, accent: Boolean, onClick: () -> Unit): TextView {
-        val wide = w > h
-        val bg = GradientDrawable(
-            GradientDrawable.Orientation.TOP_BOTTOM,
-            if (accent) intArrayOf(0x887B5CFF.toInt(), 0x334A2FBF)
-            else intArrayOf(0x66FFFFFF, 0x1AFFFFFF)
-        ).apply {
-            if (wide) cornerRadius = h / 2f else shape = GradientDrawable.OVAL
-            setStroke(dp(1), 0xAAFFFFFF.toInt())
-        }
-        keyDrawables.add(bg)
-        return TextView(this).apply {
-            text = label
-            gravity = Gravity.CENTER
-            setTextColor(Color.WHITE)
-            textSize = if (label.length > 1) 13f else 17f
-            background = bg
-            layoutParams = LinearLayout.LayoutParams(w, h).apply {
-                setMargins(dp(2), dp(3), dp(2), dp(3))
-            }
-            setOnTouchListener { v, e ->
-                when (e.action) {
-                    MotionEvent.ACTION_DOWN -> {
-                        v.animate().scaleX(0.88f).scaleY(0.88f).setDuration(60).start()
-                        v.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
-                    }
-                    MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL ->
-                        v.animate().scaleX(1f).scaleY(1f).setDuration(90).start()
-                }
-                false
-            }
-            setOnClickListener { onClick() }
-        }
-    }
-
-    private fun type(text: String) {
-        currentInputConnection?.commitText(text, 1)
-    }
-    private fun backspace() {
-        val ic = currentInputConnection ?: return
-        val selected = ic.getSelectedText(0)
-        if (selected != null && selected.isNotEmpty()) {
-            ic.commitText("", 1)
-        } else {
-            ic.deleteSurroundingText(1, 0)
-        }
-    }
-    private fun enter() {
-        val ei = currentInputEditorInfo
-        val action = (ei?.imeOptions ?: 0) and EditorInfo.IME_MASK_ACTION
-        val noEnterAction = ((ei?.imeOptions ?: 0) and EditorInfo.IME_FLAG_NO_ENTER_ACTION) != 0
-        if (ei == null || noEnterAction ||
-            action == EditorInfo.IME_ACTION_NONE ||
-            action == EditorInfo.IME_ACTION_UNSPECIFIED
-        ) {
-            sendDownUpKeyEvents(KeyEvent.KEYCODE_ENTER)
-        } else {
-            currentInputConnection?.performEditorAction(action)
-        }
+        private const val KEY_ADVANCED_MODE = "advanced_mode"
+        private const val KEY_DARK_THEME = "dark_theme"
+        private const val KEY_TRANSPARENCY = "keyboard_transparency"
+        private const val KEY_KEY_SIZE = "key_size_scale"
+        private const val KEY_KEY_ROUNDNESS = "key_roundness"
+        private const val KEY_KEY_SPACING = "key_spacing"
+        private const val KEY_KEY_TEXTURE = "key_texture"
+        private const val KEY_GLASS_BLUR = "glass_blur_level"
+        private const val KEY_WALLPAPER_VISIBILITY = "wallpaper_visibility"
+        private const val KEY_ANIM_INTENSITY = "anim_intensity"
+        private const val KEY_RIPPLE_ENABLED = "ripple_enabled"
+        private const val KEY_POP_3D_ENABLED = "pop_3d_enabled"
+        private const val KEY_HAPTIC_ENABLED = "haptic_enabled"
+        private const val KEY_HAPTIC_INTENSITY = "haptic_intensity"
     }
 }
