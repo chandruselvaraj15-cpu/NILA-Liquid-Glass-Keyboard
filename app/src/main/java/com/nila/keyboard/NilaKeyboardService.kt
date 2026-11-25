@@ -1,5 +1,4 @@
 package com.nila.keyboard
-
 import android.animation.ValueAnimator
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
@@ -13,34 +12,26 @@ import android.view.animation.LinearInterpolator
 import android.view.inputmethod.EditorInfo
 import android.widget.LinearLayout
 import android.widget.TextView
-
 class NilaKeyboardService : InputMethodService() {
-
-    private var shift = false
+private var shift = false
     private var symbols = false
     private val keyDrawables = mutableListOf<GradientDrawable>()
     private val letterKeys = mutableListOf<TextView>()
     private var animator: ValueAnimator? = null
-
-    private fun dp(v: Int): Int = (v * resources.displayMetrics.density).toInt()
-
-    override fun onCreateInputView(): View = buildKeyboard()
-
-    override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
+ private fun dp(v: Int): Int = (v * resources.displayMetrics.density).toInt()
+override fun onCreateInputView(): View = buildKeyboard()
+ override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info, restarting)
         startRgb()
     }
-
-    override fun onFinishInputView(finishingInput: Boolean) {
+ override fun onFinishInputView(finishingInput: Boolean) {
         super.onFinishInputView(finishingInput)
         animator?.cancel()
     }
-
-    override fun onDestroy() {
+ override fun onDestroy() {
         animator?.cancel()
         super.onDestroy()
     }
-
     private fun startRgb() {
         animator?.cancel()
         animator = ValueAnimator.ofFloat(0f, 360f).apply {
@@ -57,7 +48,6 @@ class NilaKeyboardService : InputMethodService() {
             start()
         }
     }
-
     private fun buildKeyboard(): View {
         keyDrawables.clear()
         letterKeys.clear()
@@ -73,19 +63,16 @@ class NilaKeyboardService : InputMethodService() {
                 intArrayOf(Color.rgb(18, 15, 35), Color.rgb(8, 8, 20))
             )
         }
-
         val numberRow = "1234567890"
         val rows: List<String> = if (!symbols) {
             listOf("qwertyuiop", "asdfghjkl", "zxcvbnm")
         } else {
             listOf("@#₹_&-+()/", "=*\"':;!?%", "~<>[]{}")
         }
-
         root.addView(makeRow(numberRow.map { ch -> makeKey(ch.toString(), keySize, keySize, false) { type(ch.toString()) } }))
         root.addView(makeRow(rows[0].map { ch -> letterKey(ch, keySize) }))
-        root.addView(makeRow(rows[1].map { ch -> letterKey(ch, keySize) }))
-
-        val row3 = mutableListOf<View>()
+        root.addView(makeRow(rows[1].map { ch -> letterKey(ch, keySize) }
+     ) val row3 = mutableListOf<View>()
         row3.add(makeKey("⇧", keySize * 3 / 2, keySize, true) {
             shift = !shift
             updateLabels()
@@ -93,8 +80,7 @@ class NilaKeyboardService : InputMethodService() {
         rows[2].forEach { ch -> row3.add(letterKey(ch, keySize)) }
         row3.add(makeKey("⌫", keySize * 3 / 2, keySize, true) { backspace() })
         root.addView(makeRow(row3))
-
-        val bottom = listOf(
+  val bottom = listOf(
             makeKey(if (symbols) "ABC" else "?123", keySize * 3 / 2, keySize, true) {
                 symbols = !symbols
                 setInputView(buildKeyboard())
@@ -106,20 +92,17 @@ class NilaKeyboardService : InputMethodService() {
             makeKey("↵", keySize * 3 / 2, keySize, true) { enter() }
         )
         root.addView(makeRow(bottom))
-
-        updateLabels()
+  updateLabels()
         return root
     }
-
     private fun makeRow(keys: List<View>): LinearLayout {
         return LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_HORIZONTAL
+ super.onDestroy()           gravity = Gravity.CENTER_HORIZONTAL
             keys.forEach { addView(it) }
         }
     }
-
-    private fun letterKey(ch: Char, size: Int): TextView {
+ private fun letterKey(ch: Char, size: Int): TextView {
         val tv = makeKey(ch.toString(), size, size, false) {
             val out = if (shift && !symbols) ch.toString().uppercase() else ch.toString()
             type(out)
@@ -132,15 +115,13 @@ class NilaKeyboardService : InputMethodService() {
         tv.tag = ch.toString()
         return tv
     }
-
-    private fun updateLabels() {
+  private fun updateLabels() {
         letterKeys.forEach { tv ->
             val base = tv.tag as String
             tv.text = if (shift) base.uppercase() else base
         }
     }
-
-    private fun makeKey(label: String, w: Int, h: Int, accent: Boolean, onClick: () -> Unit): TextView {
+private fun makeKey(label: String, w: Int, h: Int, accent: Boolean, onClick: () -> Unit): TextView {
         val wide = w > h
         val bg = GradientDrawable(
             GradientDrawable.Orientation.TOP_BOTTOM,
@@ -151,8 +132,7 @@ class NilaKeyboardService : InputMethodService() {
             setStroke(dp(1), 0xAAFFFFFF.toInt())
         }
         keyDrawables.add(bg)
-
-        return TextView(this).apply {
+return TextView(this).apply {
             text = label
             gravity = Gravity.CENTER
             setTextColor(Color.WHITE)
@@ -179,8 +159,7 @@ class NilaKeyboardService : InputMethodService() {
     private fun type(text: String) {
         currentInputConnection?.commitText(text, 1)
     }
-
-    private fun backspace() {
+ private fun backspace() {
         val ic = currentInputConnection ?: return
         val selected = ic.getSelectedText(0)
         if (selected != null && selected.isNotEmpty()) {
@@ -189,7 +168,6 @@ class NilaKeyboardService : InputMethodService() {
             ic.deleteSurroundingText(1, 0)
         }
     }
-
     private fun enter() {
         val ei = currentInputEditorInfo
         val action = (ei?.imeOptions ?: 0) and EditorInfo.IME_MASK_ACTION
