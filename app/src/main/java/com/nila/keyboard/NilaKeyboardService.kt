@@ -155,7 +155,6 @@ return TextView(this).apply {
             setOnClickListener { onClick() }
         }
     }
-
     private fun type(text: String) {
         currentInputConnection?.commitText(text, 1)
     }
