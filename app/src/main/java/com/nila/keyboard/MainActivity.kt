@@ -13,8 +13,8 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 class MainActivity : Activity() {
- private fun dp(v: Int): Int = (v * resources.displayMetrics.density).toInt()
- private fun glassButton(label: String, onClick: () -> Unit): Button {
+    private fun dp(v: Int): Int = (v * resources.displayMetrics.density).toInt()
+    private fun glassButton(label: String, onClick: () -> Unit): Button {
         return Button(this).apply {
             text = label
             isAllCaps = false
@@ -33,9 +33,10 @@ class MainActivity : Activity() {
             setOnClickListener { onClick() }
         }
     }
-override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-val layout = LinearLayout(this).apply {
+
+        val layout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
             setPadding(dp(28), dp(28), dp(28), dp(28))
@@ -44,7 +45,7 @@ val layout = LinearLayout(this).apply {
                 intArrayOf(Color.rgb(24, 18, 52), Color.rgb(6, 6, 16))
             )
         }
- val title = TextView(this).apply {
+        val title = TextView(this).apply {
             text = "NILA"
             textSize = 44f
             setTextColor(Color.WHITE)
@@ -58,14 +59,14 @@ val layout = LinearLayout(this).apply {
             gravity = Gravity.CENTER
             setPadding(0, dp(4), 0, dp(36))
         }
-val step1 = glassButton("1. Enable NILA Keyboard") {
+        val step1 = glassButton("1. Enable NILA Keyboard") {
             startActivity(Intent(Settings.ACTION_INPUT_METHOD_SETTINGS))
         }
- val step2 = glassButton("2. Select NILA Keyboard") {
+        val step2 = glassButton("2. Select NILA Keyboard") {
             val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
             imm.showInputMethodPicker()
         }
-val testBox = EditText(this).apply {
+        val testBox = EditText(this).apply {
             hint = "Type here to test NILA..."
             setHintTextColor(Color.GRAY)
             setTextColor(Color.WHITE)
@@ -79,7 +80,8 @@ val testBox = EditText(this).apply {
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             ).apply { setMargins(0, dp(24), 0, 0) }
-        } layout.addView(title)
+        }
+        layout.addView(title)
         layout.addView(subtitle)
         layout.addView(step1)
         layout.addView(step2)
