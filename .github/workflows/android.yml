@@ -7,8 +7,7 @@ permissions:
   contents: read
 jobs:
   build:
-    runs-on: ubuntu-latest
-steps:
+    runs-on: ubuntu-lateststeps:
       - name: Checkout
       uses: actions/checkout@v4
 - name: Setup Java
